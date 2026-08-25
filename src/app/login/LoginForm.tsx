@@ -2,21 +2,36 @@
 
 import { Button, Form, Input, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/stores/auth-store';
+import { useEffect } from 'react';
 
 interface LoginFormValues {
   username: string;
   password: string;
 }
 
-interface LoginResponse {
-  access_token: string;
-}
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function LoginForm() {
+  const router = useRouter();
   const [form] = Form.useForm<LoginFormValues>();
   const [messageApi, contextHolder] = message.useMessage();
+
+  const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (user) {
+      router.replace('/sample-page');
+    }
+  }, [user, isLoading, router]);
+
+  const redirectAfterLogin = () => {
+    router.push('/sample-page');
+  };
 
   const handleSubmit = async (values: LoginFormValues) => {
     try {
@@ -25,6 +40,7 @@ export default function LoginForm() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(values),
       });
 
@@ -34,11 +50,8 @@ export default function LoginForm() {
         throw new Error(data.message || 'Login failed');
       }
 
-      const loginData = data as LoginResponse;
-
-      console.log('Access token:', loginData.access_token);
-
-      messageApi.success('Login successful');
+      messageApi.success('Đăng nhập thành công');
+      redirectAfterLogin();
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Something went wrong';
