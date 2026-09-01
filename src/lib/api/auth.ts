@@ -1,17 +1,14 @@
 import { ApiResponse } from '@/types/api';
 import { User } from '@/types/user';
+import { apiClient } from './client';
 
-export async function getMe(): Promise<ApiResponse<User>> {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
-    {
-      credentials: 'include',
-    },
-  );
+export function getMe(): Promise<ApiResponse<User>> {
+  return apiClient<ApiResponse<User>>('/auth/me');
+}
 
-  if (!response.ok) {
-    throw new Error('Unauthenticated');
-  }
-
-  return response.json();
+export function login(data: { username: string; password: string }) {
+  return apiClient<ApiResponse<User>>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
