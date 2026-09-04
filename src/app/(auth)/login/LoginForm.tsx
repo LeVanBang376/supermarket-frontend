@@ -1,17 +1,19 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Button, Form, Input, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
+
+import { login, getMe } from '@/lib/api/auth';
 import { useAuthStore } from '@/stores/auth-store';
-import { useEffect } from 'react';
+import { ApiError } from '@/lib/api/client';
 
 interface LoginFormValues {
   username: string;
   password: string;
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function LoginForm() {
   const router = useRouter();
@@ -20,44 +22,45 @@ export default function LoginForm() {
 
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
+  const setUser = useAuthStore((state) => state.setUser);
+
+  const loginMutation = useMutation({
+    mutationFn: login,
+
+    onSuccess: async () => {
+      try {
+        const res = await getMe();
+
+        setUser(res.data);
+
+        messageApi.success('Đăng nhập thành công');
+
+        router.replace('/master-data/common-data');
+      } catch (error) {
+        messageApi.error('Không thể lấy thông tin người dùng');
+      }
+    },
+
+    onError: (error) => {
+      if (error instanceof ApiError) {
+        console.log(error.code);
+        console.log(error.status);
+      }
+
+      messageApi.error(error.message);
+    },
+  });
 
   useEffect(() => {
     if (isLoading) return;
 
     if (user) {
-      router.replace('/sample-page');
+      router.replace('/master-data/common-data');
     }
   }, [user, isLoading, router]);
 
-  const redirectAfterLogin = () => {
-    router.push('/sample-page');
-  };
-
-  const handleSubmit = async (values: LoginFormValues) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(values),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      messageApi.success('Đăng nhập thành công');
-      redirectAfterLogin();
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Something went wrong';
-
-      messageApi.error(errorMessage);
-    }
+  const handleSubmit = (values: LoginFormValues) => {
+    loginMutation.mutate(values);
   };
 
   return (
@@ -110,7 +113,12 @@ export default function LoginForm() {
         </div>
 
         <Form.Item className='mb-0!'>
-          <Button type='primary' htmlType='submit' block>
+          <Button
+            type='primary'
+            htmlType='submit'
+            block
+            loading={loginMutation.isPending}
+          >
             Sign In
           </Button>
         </Form.Item>
