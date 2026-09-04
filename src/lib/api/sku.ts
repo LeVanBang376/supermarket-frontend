@@ -5,6 +5,7 @@ import { apiClient } from './client';
 export interface GetSKUsParams {
   page?: number;
   per_page?: number;
+  search?: string;
 }
 
 export function getSKUs(params?: GetSKUsParams): Promise<ApiResponse<SKU[]>> {

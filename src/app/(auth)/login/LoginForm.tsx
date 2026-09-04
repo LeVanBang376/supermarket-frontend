@@ -6,7 +6,7 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 
-import { login } from '@/lib/api/auth';
+import { login, getMe } from '@/lib/api/auth';
 import { useAuthStore } from '@/stores/auth-store';
 import { ApiError } from '@/lib/api/client';
 
@@ -22,13 +22,25 @@ export default function LoginForm() {
 
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const loginMutation = useMutation({
     mutationFn: login,
-    onSuccess: () => {
-      messageApi.success('Đăng nhập thành công');
-      router.replace('/master-data/common-data');
+
+    onSuccess: async () => {
+      try {
+        const res = await getMe();
+
+        setUser(res.data);
+
+        messageApi.success('Đăng nhập thành công');
+
+        router.replace('/master-data/common-data');
+      } catch (error) {
+        messageApi.error('Không thể lấy thông tin người dùng');
+      }
     },
+
     onError: (error) => {
       if (error instanceof ApiError) {
         console.log(error.code);

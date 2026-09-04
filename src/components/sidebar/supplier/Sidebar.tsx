@@ -2,46 +2,18 @@
 
 import { Menu } from 'antd';
 import type { MenuProps } from 'antd';
-import {
-  AppstoreOutlined,
-  InboxOutlined,
-  DatabaseOutlined,
-  ShopOutlined,
-  BarcodeOutlined,
-} from '@ant-design/icons';
+import { InboxOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 
 const menuItems: MenuProps['items'] = [
-  {
-    key: '/',
-    icon: <AppstoreOutlined />,
-    label: 'Tổng quan',
-  },
   {
     key: '/import-requests',
     icon: <InboxOutlined />,
     label: 'Yêu cầu nhập hàng',
   },
-  {
-    key: 'master-data',
-    icon: <DatabaseOutlined />,
-    label: 'Master data',
-    children: [
-      {
-        key: '/master-data/common-data',
-        icon: <DatabaseOutlined />,
-        label: 'Dữ liệu chung',
-      },
-      {
-        key: '/master-data/skus',
-        icon: <BarcodeOutlined />,
-        label: 'SKU',
-      },
-    ],
-  },
 ];
 
-export default function Sidebar() {
+export default function SupplierSidebar() {
   const router = useRouter();
   const pathname = usePathname();
 

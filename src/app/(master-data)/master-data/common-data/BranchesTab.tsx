@@ -6,13 +6,13 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { Button, Input, Popconfirm, Table } from 'antd';
+import { Button, Form, Input, message, Modal, Popconfirm, Table } from 'antd';
 import type { TableProps } from 'antd';
 import { useState } from 'react';
 
-import { useBranches } from '@/queries/branch';
+import { useBranches, useCreateBranch } from '@/queries/branch';
 import type { GetBranchesParams } from '@/lib/api/branch';
-import type { Branch } from '@/types/branch';
+import type { Branch, CreateBranchRequest } from '@/types/branch';
 
 export default function BranchesTab() {
   const [params, setParams] = useState<GetBranchesParams>({
@@ -20,7 +20,37 @@ export default function BranchesTab() {
     per_page: 10,
   });
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const [form] = Form.useForm<CreateBranchRequest>();
+
   const { data, isLoading, isError } = useBranches(params);
+
+  const createBranchMutation = useCreateBranch();
+
+  const handleOpenCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    if (createBranchMutation.isPending) {
+      return;
+    }
+
+    setIsCreateModalOpen(false);
+  };
+
+  const handleCreateBranch = async (values: CreateBranchRequest) => {
+    try {
+      await createBranchMutation.mutateAsync(values);
+
+      message.success('Thêm chi nhánh thành công');
+
+      setIsCreateModalOpen(false);
+    } catch {
+      message.error('Không thể thêm chi nhánh');
+    }
+  };
 
   const columns: TableProps<Branch>['columns'] = [
     {
@@ -92,7 +122,11 @@ export default function BranchesTab() {
             className='w-64'
           />
 
-          <Button type='primary' icon={<PlusOutlined />}>
+          <Button
+            type='primary'
+            icon={<PlusOutlined />}
+            onClick={handleOpenCreateModal}
+          >
             Thêm chi nhánh
           </Button>
         </div>
@@ -117,8 +151,63 @@ export default function BranchesTab() {
           }}
           onChange={handleTableChange}
           scroll={{ x: 700 }}
+          size='small'
         />
       )}
+
+      <Modal
+        title='Thêm chi nhánh'
+        open={isCreateModalOpen}
+        onCancel={handleCloseCreateModal}
+        okText='Thêm'
+        cancelText='Hủy'
+        confirmLoading={createBranchMutation.isPending}
+        onOk={() => {
+          form.submit();
+        }}
+        destroyOnHidden
+      >
+        <Form form={form} layout='vertical' onFinish={handleCreateBranch}>
+          <Form.Item
+            label='Tên chi nhánh'
+            name='branch_name'
+            rules={[
+              {
+                required: true,
+                message: 'Vui lòng nhập tên chi nhánh',
+              },
+              {
+                max: 100,
+                message: 'Tên chi nhánh không được vượt quá 100 ký tự',
+              },
+            ]}
+          >
+            <Input placeholder='Nhập tên chi nhánh' maxLength={100} />
+          </Form.Item>
+
+          <Form.Item
+            label='Địa chỉ'
+            name='address'
+            rules={[
+              {
+                required: true,
+                message: 'Vui lòng nhập địa chỉ',
+              },
+              {
+                max: 255,
+                message: 'Địa chỉ không được vượt quá 255 ký tự',
+              },
+            ]}
+          >
+            <Input.TextArea
+              placeholder='Nhập địa chỉ chi nhánh'
+              rows={3}
+              maxLength={255}
+              showCount
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
