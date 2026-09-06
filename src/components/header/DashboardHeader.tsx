@@ -1,28 +1,42 @@
 'use client';
 
 import { DownOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
-import { Avatar, Dropdown } from 'antd';
+import { Avatar, Dropdown, message } from 'antd';
 import type { MenuProps } from 'antd';
+import { useRouter } from 'next/navigation';
 
+import { useLogout } from '@/queries/auth';
 import { useAuthStore } from '@/stores/auth-store';
 
 export default function DashboardHeader() {
+  const router = useRouter();
+
   const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const clearUser = useAuthStore((state) => state.clearUser);
 
-  const handleLogout = () => {
-    logout();
+  const { mutateAsync: logout, isPending } = useLogout();
 
-    // TODO: gọi API logout nếu backend có endpoint logout
-    // Sau đó redirect về /login
+  const handleLogout = async () => {
+    try {
+      await logout();
+
+      clearUser();
+
+      router.replace('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+
+      message.error('Đăng xuất thất bại');
+    }
   };
 
   const items: MenuProps['items'] = [
     {
       key: 'logout',
-      label: 'Đăng xuất',
+      label: isPending ? 'Đang đăng xuất...' : 'Đăng xuất',
       icon: <LogoutOutlined />,
       danger: true,
+      disabled: isPending,
       onClick: handleLogout,
     },
   ];
