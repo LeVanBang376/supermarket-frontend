@@ -20,7 +20,7 @@ export function AuthInitializer() {
 
     if (isError) {
       setUser(null);
-      router.push('/login');
+      router.replace('/login');
     }
 
     if (!isLoading) {
