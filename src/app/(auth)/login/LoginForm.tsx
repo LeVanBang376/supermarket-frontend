@@ -35,7 +35,7 @@ export default function LoginForm() {
 
         messageApi.success('Đăng nhập thành công');
 
-        router.replace('/master-data/common-data');
+        router.replace('/services');
       } catch (error) {
         messageApi.error('Không thể lấy thông tin người dùng');
       }
@@ -55,7 +55,7 @@ export default function LoginForm() {
     if (isLoading) return;
 
     if (user) {
-      router.replace('/master-data/common-data');
+      router.replace('/services');
     }
   }, [user, isLoading, router]);
 

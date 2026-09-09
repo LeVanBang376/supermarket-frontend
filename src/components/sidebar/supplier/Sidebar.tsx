@@ -24,7 +24,15 @@ export default function SupplierSidebar() {
   return (
     <aside className='fixed left-0 top-0 h-screen w-64 shrink-0 border-r border-gray-200/70 bg-white shadow-[1px_0_8px_rgba(0,0,0,0.03)]'>
       <div className='flex h-16 items-center border-b border-gray-200/70 px-6'>
-        <h1 className='text-lg font-semibold'>Supermarket</h1>
+        <div className='flex h-16 items-center border-b border-gray-200/70 px-6'>
+          <button
+            type='button'
+            onClick={() => router.push('/services')}
+            className='cursor-pointer text-lg font-semibold transition-colors hover:text-blue-500'
+          >
+            Supermarket
+          </button>
+        </div>
       </div>
 
       <Menu

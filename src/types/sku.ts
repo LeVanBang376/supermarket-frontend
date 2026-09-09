@@ -5,6 +5,7 @@ export interface SKU {
   brand_name: string;
   unit_id: string;
   unit_name: string;
+  unit_price: number;
   shelf_life_days: number;
 }
 
